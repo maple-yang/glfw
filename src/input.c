@@ -37,48 +37,23 @@
 
 // Sets the cursor mode for the specified window
 //
-static void setCursorMode(_GLFWwindow* window, int newMode)
+static void setCursorMode(_GLFWwindow* window, int mode)
 {
-    const int oldMode = window->cursorMode;
-
-    if (newMode != GLFW_CURSOR_NORMAL &&
-        newMode != GLFW_CURSOR_HIDDEN &&
-        newMode != GLFW_CURSOR_DISABLED)
+    if (mode != GLFW_CURSOR_NORMAL &&
+        mode != GLFW_CURSOR_HIDDEN &&
+        mode != GLFW_CURSOR_DISABLED)
     {
-        _glfwInputError(GLFW_INVALID_ENUM, "Invalid cursor mode %i", newMode);
+        _glfwInputError(GLFW_INVALID_ENUM, "Invalid cursor mode %i", mode);
         return;
     }
 
-    if (oldMode == newMode)
+    if (window->cursorMode == mode)
         return;
-
-    window->cursorMode = newMode;
 
     if (_glfw.cursorWindow == window)
-    {
-        if (oldMode == GLFW_CURSOR_DISABLED)
-        {
-            _glfwPlatformSetCursorPos(window,
-                                      _glfw.restoreCursorPosX,
-                                      _glfw.restoreCursorPosY);
-        }
-        else if (newMode == GLFW_CURSOR_DISABLED)
-        {
-            int width, height;
+        _glfwPlatformSetCursorMode(window, mode);
 
-            _glfwPlatformGetCursorPos(window,
-                                      &_glfw.restoreCursorPosX,
-                                      &_glfw.restoreCursorPosY);
-
-            window->virtualCursorPosX = _glfw.restoreCursorPosX;
-            window->virtualCursorPosY = _glfw.restoreCursorPosY;
-
-            _glfwPlatformGetWindowSize(window, &width, &height);
-            _glfwPlatformSetCursorPos(window, width / 2, height / 2);
-        }
-
-        _glfwPlatformSetCursorMode(window, window->cursorMode);
-    }
+    window->cursorMode = mode;
 }
 
 // Set sticky keys mode for the specified window
@@ -203,6 +178,11 @@ void _glfwInputCursorMotion(_GLFWwindow* window, double x, double y)
 
         x = window->virtualCursorPosX;
         y = window->virtualCursorPosY;
+    }
+    else
+    {
+        window->virtualCursorPosX = x;
+        window->virtualCursorPosY = y;
     }
 
     if (window->callbacks.cursorPos)

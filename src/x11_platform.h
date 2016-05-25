@@ -155,6 +155,8 @@ typedef struct _GLFWlibraryX11
     short int       publicKeys[256];
     // GLFW key to X11 keycode LUT
     short int       nativeKeys[GLFW_KEY_LAST + 1];
+    // Where to place the cursor when re-enabled
+    double          restoreCursorPosX, restoreCursorPosY;
 
     // Window manager atoms
     Atom            WM_PROTOCOLS;

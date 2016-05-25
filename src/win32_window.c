@@ -218,15 +218,29 @@ static void applyAspectRatio(_GLFWwindow* window, int edge, RECT* area)
     }
 }
 
+// Centers the cursor over the window client area
+//
+static void centerCursor(_GLFWwindow* window)
+{
+    int width, height;
+    _glfwPlatformGetWindowSize(window, &width, &height);
+    _glfwPlatformSetCursorPos(window, width / 2.0, height / 2.0);
+}
+
 // Updates the cursor clip rect
 //
 static void updateClipRect(_GLFWwindow* window)
 {
-    RECT clipRect;
-    GetClientRect(window->win32.handle, &clipRect);
-    ClientToScreen(window->win32.handle, (POINT*) &clipRect.left);
-    ClientToScreen(window->win32.handle, (POINT*) &clipRect.right);
-    ClipCursor(&clipRect);
+    if (window)
+    {
+        RECT clipRect;
+        GetClientRect(window->win32.handle, &clipRect);
+        ClientToScreen(window->win32.handle, (POINT*) &clipRect.left);
+        ClientToScreen(window->win32.handle, (POINT*) &clipRect.right);
+        ClipCursor(&clipRect);
+    }
+    else
+        ClipCursor(NULL);
 }
 
 // Translates a GLFW standard cursor to a resource ID
@@ -1007,6 +1021,8 @@ int _glfwPlatformCreateWindow(_GLFWwindow* window,
         _glfwPlatformFocusWindow(window);
         if (!acquireMonitor(window))
             return GLFW_FALSE;
+
+        centerCursor(window);
     }
 
     return GLFW_TRUE;
@@ -1446,16 +1462,30 @@ void _glfwPlatformSetCursorMode(_GLFWwindow* window, int mode)
 {
     POINT pos;
 
-    if (mode == GLFW_CURSOR_DISABLED)
-        updateClipRect(window);
-    else
-        ClipCursor(NULL);
-
     if (!GetCursorPos(&pos))
         return;
 
     if (WindowFromPoint(pos) != window->win32.handle)
         return;
+
+    if (mode == GLFW_CURSOR_DISABLED)
+    {
+        _glfwPlatformGetCursorPos(window,
+                                  &_glfw.win32.restoreCursorPosX,
+                                  &_glfw.win32.restoreCursorPosY);
+        _glfwInputCursorMotion(window,
+                               _glfw.win32.restoreCursorPosX,
+                               _glfw.win32.restoreCursorPosY);
+        centerCursor(window);
+        updateClipRect(window);
+    }
+    else if (window->cursorMode == GLFW_CURSOR_DISABLED)
+    {
+        updateClipRect(NULL);
+        _glfwPlatformSetCursorPos(window,
+                                  _glfw.win32.restoreCursorPosX,
+                                  _glfw.win32.restoreCursorPosY);
+    }
 
     if (mode == GLFW_CURSOR_NORMAL)
     {

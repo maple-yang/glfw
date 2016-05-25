@@ -437,9 +437,6 @@ struct _GLFWlibrary
         int             refreshRate;
     } hints;
 
-    // Where to place the cursor when re-enabled
-    double              restoreCursorPosX, restoreCursorPosY;
-
     _GLFWcursor*        cursorListHead;
 
     _GLFWwindow*        windowListHead;

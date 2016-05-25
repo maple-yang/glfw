@@ -1033,6 +1033,8 @@ int _glfwPlatformCreateWindow(_GLFWwindow* window,
         _glfwPlatformFocusWindow(window);
         if (!acquireMonitor(window))
             return GLFW_FALSE;
+
+        centerCursor(window);
     }
 
     return GLFW_TRUE;
@@ -1423,6 +1425,25 @@ void _glfwPlatformSetCursorPos(_GLFWwindow* window, double x, double y)
 
 void _glfwPlatformSetCursorMode(_GLFWwindow* window, int mode)
 {
+    if (mode == GLFW_CURSOR_DISABLED)
+    {
+        _glfwPlatformGetCursorPos(window,
+                                  &_glfw.ns.restoreCursorPosX,
+                                  &_glfw.ns.restoreCursorPosY);
+        _glfwInputCursorMotion(window,
+                               _glfw.ns.restoreCursorPosX,
+                               _glfw.ns.restoreCursorPosY);
+        centerCursor(window);
+        CGAssociateMouseAndMouseCursorPosition(false);
+    }
+    else if (window->cursorMode == GLFW_CURSOR_DISABLED)
+    {
+        CGAssociateMouseAndMouseCursorPosition(true);
+        _glfwPlatformSetCursorPos(window,
+                                  _glfw.ns.restoreCursorPosX,
+                                  _glfw.ns.restoreCursorPosY);
+    }
+
     if (mode == GLFW_CURSOR_NORMAL)
     {
         if (window->cursor)
@@ -1432,11 +1453,6 @@ void _glfwPlatformSetCursorMode(_GLFWwindow* window, int mode)
     }
     else
         [(NSCursor*) _glfw.ns.cursor set];
-
-    if (mode == GLFW_CURSOR_DISABLED)
-        CGAssociateMouseAndMouseCursorPosition(false);
-    else
-        CGAssociateMouseAndMouseCursorPosition(true);
 }
 
 const char* _glfwPlatformGetKeyName(int key, int scancode)

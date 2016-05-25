@@ -324,12 +324,12 @@ struct _GLFWcontext
     PFNGLGETINTEGERVPROC GetIntegerv;
     PFNGLGETSTRINGPROC  GetString;
 
-    _GLFWmakecontextcurrentfun  makeContextCurrent;
+    _GLFWmakecontextcurrentfun  makeCurrent;
     _GLFWswapbuffersfun         swapBuffers;
     _GLFWswapintervalfun        swapInterval;
     _GLFWextensionsupportedfun  extensionSupported;
     _GLFWgetprocaddressfun      getProcAddress;
-    _GLFWdestroycontextfun      destroyContext;
+    _GLFWdestroycontextfun      destroy;
 
     // This is defined in the context API's context.h
     _GLFW_PLATFORM_CONTEXT_STATE;
